@@ -1,0 +1,21 @@
+{
+  "name": "netrosa-tx-lambdas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/netrosa-solidity"
+  },
+  "author": "",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "request-promise-native": "^1.0.5",
+    "truffle-contract": "^3.0.6",
+    "truffle-hdwallet-provider": "0.0.6",
+    "web3": "^1.0.0-beta.36"
+  }
+}
