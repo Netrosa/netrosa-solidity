@@ -177,4 +177,33 @@ contract('Submission Logging', function (accounts) {
         await assertState(log, "unkownFormId", "unknown");
     })
 
+    it("should reveal key", async function () {
+        let key = "publickey"
+
+        let notAKey = await log.publicKey(formId);
+        assert.equal(notAKey, "", "should not have a key");
+
+        await log.revealKey(formId, key, {from: transactor});
+
+        let isAKey = await log.publicKey(formId);
+        assert.equal(isAKey, key, "should have a key");
+    });
+
+    it("should not accept blank key", async function () {
+        let key = ""
+
+        await assertThrowsAsync(async ()=>{
+            await log.revealKey(formId, key, {from: transactor});
+        }, /Exception/);
+    });
+
+    it("should not accept key from non-transactor", async function () {
+        let key = "publickey"
+
+        await assertThrowsAsync(async ()=>{
+            await log.revealKey(formId, key, {from: other});
+        }, /Exception/);
+    });
+
+
 });

@@ -26,3 +26,6 @@ upload:
 	aws s3 sync ./build/contracts/ s3://netrosa-contracts/$(VERSION)/ --acl public-read
 
 publish: build migrate upload
+
+coverage:
+	node_modules/.bin/solidity-coverage

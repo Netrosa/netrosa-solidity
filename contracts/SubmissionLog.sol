@@ -83,7 +83,7 @@ contract SubmissionLog is Ownable {
 
     function revealKey(bytes32 formId, string key) public onlyExisting(formId) onlyTransactor(formId) {
         require(bytes(key).length > 0, "key cannot be blank");
-        publicKey[formId].key = key;
+        publicKey[formId] = key;
     }
 
     function open(bytes32 formId) public onlyExisting(formId) onlyTransactor(formId) {
