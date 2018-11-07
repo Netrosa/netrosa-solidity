@@ -10,12 +10,13 @@ const setFormSuccess = async (company, formId, version, txId, formIdHash) => {
             "company": company,
             "formId": formId
         },
-        UpdateExpression: "set version = :v, txStatus = :s, txId = :t, formIdHash = :f",
+        UpdateExpression: "set version = :v, txStatus = :s, txId = :t, formIdHash = :f, formStatus = :s",
         ExpressionAttributeValues:{
             ":v": version,
             ":s": "complete",
             ":t": txId,
-            ":f": formIdHash
+            ":f": formIdHash,
+            ":s": "ready"
         }
     };
     await docClient.update(params).promise();
