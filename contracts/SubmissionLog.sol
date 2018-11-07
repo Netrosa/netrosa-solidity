@@ -19,7 +19,7 @@ contract SubmissionLog is Ownable {
     mapping (bytes32 => FormSettings) public forms;
     mapping (bytes32 => bool) public formExists;
     mapping (bytes32 => Entry[]) public entries;
-    mapping (bytes32 => string) public publicKey;
+    mapping (bytes32 => string) public decryptionKey;
 
     // each formId can only exist once, globally
     modifier notExisting(bytes32 formId) {
@@ -49,7 +49,7 @@ contract SubmissionLog is Ownable {
             transactor: transactor,
             state: FormState.open
         });
-        publicKey[formId] = key;
+        decryptionKey[formId] = key;
         formExists[formId] = true;
     }
 
@@ -83,7 +83,7 @@ contract SubmissionLog is Ownable {
 
     function revealKey(bytes32 formId, string key) public onlyExisting(formId) onlyTransactor(formId) {
         require(bytes(key).length > 0, "key cannot be blank");
-        publicKey[formId] = key;
+        decryptionKey[formId] = key;
     }
 
     function open(bytes32 formId) public onlyExisting(formId) onlyTransactor(formId) {

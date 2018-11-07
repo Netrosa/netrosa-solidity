@@ -6,6 +6,7 @@ const forms = require("./lib/forms")
 const ipfs = require("./lib/ipfs")
 
 module.exports.createForm = iopipe(async (event, context, callback) => {
+  console.log(event);
   context.callbackWaitsForEmptyEventLoop = false;
 
   let network = event.network;
@@ -26,34 +27,35 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
   let version = nv.version();
   let submissionLog = await nv.SubmissionLog(version);
 
-  let hashedFormId = nv.sha3(event.formId);
+  let formIdHash = nv.sha3(event.formId);
   let continuousReveal = event.continuousReveal || false;
   let transactor = nv.gatewayAddress();
 
   await encryption.generateKeys(formId);
 
-  let pubKeyHash = ""
+  let keyHash = ""
   if(continuousReveal){
-    let pubKeyPem = await encryption.getDecryptedKey(formId, "encryption-private")
-    pubKeyHash = await ipfs.save(pubKeyPem);
+    let keyPem = await encryption.getDecryptedKey(formId, "encryption-private")
+    keyHash = await ipfs.save({privateKey: keyPem});
+    console.log(`saved key ${keyHash} to ipfs`)
   }
 
   // duplicate, fast succeed to avoid blowing gas
-  let exists = await submissionLog.formExists(hashedFormId);
+  let exists = await submissionLog.formExists(formIdHash);
   if(exists){
-    callback(null, {formId: hashedFormId})
+    callback(null, {formId: formIdHash})
     return;
   }
 
   try{
     let nonce = await nv.Nonce();
-    let tx = await submissionLog.createForm(transactor, pubKeyHash, hashedFormId, {from: transactor, nonce: nonce})
+    let tx = await submissionLog.createForm(transactor, keyHash, formIdHash, {from: transactor, nonce: nonce})
     console.log(tx);
     
     let txHash = tx.tx;    
-    await forms.setFormSuccess(company, formId, version, txHash);
+    await forms.setFormSuccess(company, formId, version, txHash, formIdHash);
 
-    callback(null, {formId: hashedFormId})
+    callback(null, {formId: formIdHash})
 
   } catch(e){
     console.error(e);

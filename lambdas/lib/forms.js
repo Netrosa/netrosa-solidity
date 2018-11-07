@@ -3,18 +3,19 @@ const docClient = new AWS.DynamoDB.DocumentClient();
 
 const FORM_TABLE = "forms"
 
-const setFormSuccess = async (company, formId, version, txId) => {
+const setFormSuccess = async (company, formId, version, txId, formIdHash) => {
     var params = {
         TableName: FORM_TABLE,
         Key:{
             "company": company,
             "formId": formId
         },
-        UpdateExpression: "set version = :v, txStatus = :s, txId = :t",
+        UpdateExpression: "set version = :v, txStatus = :s, txId = :t, formIdHash = :f",
         ExpressionAttributeValues:{
             ":v": version,
             ":s": "complete",
-            ":t": txId
+            ":t": txId,
+            ":f": formIdHash
         }
     };
     await docClient.update(params).promise();

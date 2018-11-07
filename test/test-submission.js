@@ -178,14 +178,14 @@ contract('Submission Logging', function (accounts) {
     })
 
     it("should reveal key", async function () {
-        let key = "publickey"
+        let key = "decryptionKey"
 
-        let notAKey = await log.publicKey(formId);
+        let notAKey = await log.decryptionKey(formId);
         assert.equal(notAKey, "", "should not have a key");
 
         await log.revealKey(formId, key, {from: transactor});
 
-        let isAKey = await log.publicKey(formId);
+        let isAKey = await log.decryptionKey(formId);
         assert.equal(isAKey, key, "should have a key");
     });
 
@@ -198,7 +198,7 @@ contract('Submission Logging', function (accounts) {
     });
 
     it("should not accept key from non-transactor", async function () {
-        let key = "publickey"
+        let key = "decryptionKey"
 
         await assertThrowsAsync(async ()=>{
             await log.revealKey(formId, key, {from: other});
