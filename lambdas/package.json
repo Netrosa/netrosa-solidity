@@ -13,9 +13,12 @@
   "author": "",
   "license": "GPL-3.0",
   "dependencies": {
+    "@iopipe/iopipe": "^1.11.1",
+    "ethereumjs-abi": "^0.6.5",
     "request-promise-native": "^1.0.5",
     "truffle-contract": "^3.0.6",
     "truffle-hdwallet-provider": "0.0.6",
+    "ursa": "^0.9.4",
     "web3": "^1.0.0-beta.36"
   }
 }

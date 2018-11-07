@@ -20,45 +20,68 @@ service: netrosa-ethereum # NOTE: update this with your service name
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: ${opt:stage, 'dev'}
+  stage: ${opt:stage, 'prod'}
   region: ${opt:region, 'us-east-1'}
 
 # you can overwrite defaults here
 #  stage: dev
 #  region: us-east-1
-
+  timeout: 300 
+  environment: # Service wide environment variables
+    IO_PIPE_TOKEN: ${env:IO_PIPE_TOKEN}
+  vpc: 
+    securityGroupIds:
+      - sg-025c7ecbc08c65d3f
+    subnetIds:
+      - subnet-04cdd439355044a87
+      - subnet-0bbbcd37ebe7aa338
 # you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
-
-# you can define service wide environment variables here
-#  environment:
-#    variable1: value1
-
-# you can add packaging information here
-#package:
-#  include:
-#    - include-me.js
-#    - include-me-dir/**
-#  exclude:
-#    - exclude-me.js
-#    - exclude-me-dir/**
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "s3:ListBucket"
+      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+    - Effect: "Allow"
+      Action:
+        - "s3:PutObject"
+      Resource:
+        Fn::Join:
+          - ""
+          - - "arn:aws:s3:::"
+            - "Ref" : "ServerlessDeploymentBucket"
+            - "/*"
+    - Effect: Allow
+      Action:
+        - kms:Decrypt
+        - kms:Encrypt
+      Resource: "arn:aws:kms:us-east-1:891335278704:key/5880ec39-30e8-4995-b75a-e3abee2dbba0"
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:us-east-1:891335278704:table/formKeys"
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:us-east-1:891335278704:table/forms"
+    - Effect: Allow
+      Action:
+        - dynamodb:GetItem
+      Resource: "arn:aws:dynamodb:us-east-1:891335278704:table/networks"
+    - Effect: Allow
+      Action:
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:us-east-1:891335278704:table/nonces"
+    - Effect: Allow
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource: arn:aws:secretsmanager:us-east-1:891335278704:secret:election/ethereum/mnemonic-o3QBP6
 
 functions:
-  hello:
-    handler: handler.hello
+  create-form:
+    handler: create-form.createForm
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events
