@@ -3,6 +3,7 @@ const iopipe = require('@iopipe/iopipe')({ token: process.env.IO_PIPE_TOKEN });
 const networks = require("./lib/eth-networks");
 const encryption = require("./lib/encryption")
 const forms = require("./lib/forms")
+const ipfs = require("./lib/ipfs")
 
 module.exports.createForm = iopipe(async (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
@@ -31,9 +32,10 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
 
   await encryption.generateKeys(formId);
 
-  let publicKey = ""
+  let pubKeyHash = ""
   if(continuousReveal){
-    publicKey = await encryption.getDecryptedKey(formId, "encryption")
+    let pubKeyPem = await encryption.getDecryptedKey(formId, "encryption-private")
+    pubKeyHash = await ipfs.save(pubKeyPem);
   }
 
   // duplicate, fast succeed to avoid blowing gas
@@ -45,7 +47,7 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
 
   try{
     let nonce = await nv.Nonce();
-    let tx = await submissionLog.createForm(transactor, publicKey, hashedFormId, {from: transactor, nonce: nonce})
+    let tx = await submissionLog.createForm(transactor, pubKeyHash, hashedFormId, {from: transactor, nonce: nonce})
     console.log(tx);
     
     let txHash = tx.tx;    

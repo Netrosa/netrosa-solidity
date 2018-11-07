@@ -78,7 +78,12 @@ provider:
       Action:
         - secretsmanager:GetSecretValue
       Resource: arn:aws:secretsmanager:us-east-1:891335278704:secret:election/ethereum/mnemonic-o3QBP6
-
+    - Effect: Allow
+      Action:
+        - "s3:PutObject"
+        - "s3:GetObject"
+      Resource: "arn:aws:s3:::netvote-ipfs/*"     
+      
 functions:
   create-form:
     handler: create-form.createForm
