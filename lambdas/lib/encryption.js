@@ -114,12 +114,15 @@ const deleteSubmitKey = async (formId) => {
     await docClient.update(params).promise();
 }
 
-const generateKeys = async (formId) => {
+const generateKeys = async (formId, authType) => {
     let tasks = [
         generateKey(formId, "anonymize"),
-        generateKeyPair(formId, "jwt"),
         generateKeyPair(formId, "encryption"),
     ];
+    // if key, then netrosa will sign using own JWT keypair
+    if(authType === "key"){
+        tasks.push(generateKeyPair(formId, "jwt"))
+    }
     await Promise.all(tasks);
 }
 

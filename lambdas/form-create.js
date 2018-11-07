@@ -12,6 +12,7 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
   let network = event.network;
   let company = event.company;
   let formId = event.formId;
+  let authType = event.authType;
 
   if(!company){
     throw new Error("company is required")
@@ -22,6 +23,9 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
   if(!network){
     throw new Error("network is required")
   }
+  if(!authType) {
+    throw new Error("authType is required, (key, jwt)")
+  }
 
   let nv = await networks.NetvoteProvider(event.network);
   let version = nv.version();
@@ -31,7 +35,7 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
   let continuousReveal = event.continuousReveal || false;
   let transactor = nv.gatewayAddress();
 
-  await encryption.generateKeys(formId);
+  await encryption.generateKeys(formId, authType);
 
   let keyHash = ""
   if(continuousReveal){
@@ -41,6 +45,7 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
   }
 
   // duplicate, fast succeed to avoid blowing gas
+  // TODO: update if this create changes anything
   let exists = await submissionLog.formExists(formIdHash);
   if(exists){
     callback(null, {formId: formIdHash})
@@ -55,7 +60,7 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
     let txHash = tx.tx;    
     await forms.setFormSuccess(company, formId, version, txHash, formIdHash);
 
-    callback(null, {formId: formIdHash})
+    callback(null, {formIdHash: formIdHash, txId: txHash})
 
   } catch(e){
     console.error(e);

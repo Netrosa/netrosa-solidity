@@ -37,7 +37,37 @@ const setFormError = async (company, formId, errorMsg) => {
     await docClient.update(params).promise();
 }
 
+const getForm = async (company, formId) => {
+    var params = {
+        TableName: FORM_TABLE,
+        Key:{
+            "company": company,
+            "formId": formId
+        }
+    };
+
+    let f = await docClient.get(params).promise();
+    return f.Item;
+}
+
+const setFormStatus = async (company, id, status) => {
+    let params = {
+        TableName: FORM_TABLE,
+        Key: {
+            "company": company,
+            "formId": id
+        },
+        UpdateExpression: "set formStatus = :s",
+        ExpressionAttributeValues:{
+            ":s": status
+        }
+    }
+    await docClient.update(params).promise();
+}
+
 module.exports = {
     setFormSuccess: setFormSuccess,
-    setFormError: setFormError
+    setFormError: setFormError,
+    setFormStatus: setFormStatus,
+    getForm: getForm
 }
