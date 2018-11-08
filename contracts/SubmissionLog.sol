@@ -20,6 +20,7 @@ contract SubmissionLog is Ownable {
     mapping (bytes32 => bool) public formExists;
     mapping (bytes32 => Entry[]) public entries;
     mapping (bytes32 => string) public decryptionKey;
+    mapping (bytes32 => bool) public tokens;
 
     // each formId can only exist once, globally
     modifier notExisting(bytes32 formId) {
@@ -35,6 +36,11 @@ contract SubmissionLog is Ownable {
 
     modifier onlyTransactor(bytes32 formId) {
         require(isOwner() || msg.sender == forms[formId].transactor, "only approved transactor allowed");
+        _;
+    }
+
+    modifier notDuplicateToken(bytes32 tokenId) {
+        require(!tokens[tokenId]);
         _;
     }
 
@@ -57,7 +63,8 @@ contract SubmissionLog is Ownable {
     function addEntry(
         bytes32 formId,
         bytes32 senderId,
-        string value) public onlyExisting(formId) onlyTransactor(formId)
+        string value,
+        bytes32 tokenId) public onlyExisting(formId) onlyTransactor(formId) notDuplicateToken(tokenId)
     {
         require(bytes(value).length > 0, "value cannot be empty");
         require(forms[formId].state == FormState.open, "form state must be open");
@@ -65,6 +72,7 @@ contract SubmissionLog is Ownable {
             senderId: senderId,
             value: value
         }));
+        tokens[tokenId] = true;
     }
 
     function getEntriesCount(bytes32 formId) public view returns (uint256) {

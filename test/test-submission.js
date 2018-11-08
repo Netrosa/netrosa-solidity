@@ -38,6 +38,9 @@ const formStates = [
     "locked"
 ]
 
+let getToken = ()=> {
+    return `${new Date().getTime()}`
+}
 
 contract('Submission Logging', function (accounts) {
     let log;
@@ -86,7 +89,7 @@ contract('Submission Logging', function (accounts) {
         let length = await log.getEntriesCount(formId);
         assert.equal(length, 0, "should have no entries");
 
-        await log.addEntry(formId, senderId, value, {from: transactor});
+        await log.addEntry(formId, senderId, value, getToken(), {from: transactor});
 
         length = await log.getEntriesCount(formId);
         assert.equal(length, 1, "should have 1 entry");
@@ -101,7 +104,7 @@ contract('Submission Logging', function (accounts) {
         let length = await log.getEntriesCount(formId);
         assert.equal(length, 1, "should have no entries");
 
-        await log.addEntry(formId, senderId, value, {from: transactor});
+        await log.addEntry(formId, senderId, value, getToken(), {from: transactor});
 
         length = await log.getEntriesCount(formId);
         assert.equal(length, 2, "should have 1 entry");
@@ -118,7 +121,7 @@ contract('Submission Logging', function (accounts) {
         let length = await log.getEntriesCount(formId);
         assert.equal(length, 2, "should have no entries");
 
-        await log.addEntry(formId, senderId, value, {from: transactor});
+        await log.addEntry(formId, senderId, value, getToken(), {from: transactor});
 
         length = await log.getEntriesCount(formId);
         assert.equal(length, 3, "should have 1 entry");
@@ -131,7 +134,7 @@ contract('Submission Logging', function (accounts) {
         let senderId = web3.sha3("senderId");
 
         await assertThrowsAsync(async ()=>{
-            await log.addEntry(formId, senderId, value, {from: other});
+            await log.addEntry(formId, senderId, value, getToken(), {from: other});
         }, /Exception/);
     });
 
@@ -139,9 +142,9 @@ contract('Submission Logging', function (accounts) {
         let value = "value"
         let senderId = web3.sha3("senderId");
         await log.setTransactor(formId, other, {from: transactor});
-        await log.addEntry(formId, senderId, value, {from: other});
+        await log.addEntry(formId, senderId, value, getToken(), {from: other});
         await log.setTransactor(formId, transactor, {from: other});
-        await log.addEntry(formId, senderId, value, {from: transactor});
+        await log.addEntry(formId, senderId, value, getToken(), {from: transactor});
 
     });
 
@@ -150,7 +153,7 @@ contract('Submission Logging', function (accounts) {
         let senderId = web3.sha3("senderId");
 
         await assertThrowsAsync(async ()=>{
-            await log.addEntry(formId, senderId, value, {from: transactor});
+            await log.addEntry(formId, senderId, value, getToken(), {from: transactor});
         }, /Exception/);
     });
 
@@ -160,7 +163,7 @@ contract('Submission Logging', function (accounts) {
         let missingFormId = web3.sha3("missing");
 
         await assertThrowsAsync(async ()=>{
-            await log.addEntry(missingFormId, senderId, value, {from: transactor});
+            await log.addEntry(missingFormId, senderId, value, getToken(), {from: transactor});
         }, /Exception/);
     });
 
@@ -194,6 +197,18 @@ contract('Submission Logging', function (accounts) {
 
         await assertThrowsAsync(async ()=>{
             await log.revealKey(formId, key, {from: transactor});
+        }, /Exception/);
+    });
+
+    it("should not accept duplicate token", async function () {
+        let value = "value2"
+        let senderId = web3.sha3("senderId");
+
+        let token = "token"
+        await log.addEntry(formId, senderId, value, token, {from: transactor});
+
+        await assertThrowsAsync(async ()=>{
+            await log.addEntry(formId, senderId, "othervalue", token, {from: transactor});
         }, /Exception/);
     });
 
