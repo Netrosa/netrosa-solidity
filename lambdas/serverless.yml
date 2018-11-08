@@ -76,6 +76,10 @@ provider:
       Resource: "arn:aws:dynamodb:us-east-1:891335278704:table/nonces"
     - Effect: Allow
       Action:
+        - dynamodb:UpdateItem
+      Resource: "arn:aws:dynamodb:us-east-1:891335278704:table/formSubmissions"
+    - Effect: Allow
+      Action:
         - secretsmanager:GetSecretValue
       Resource: arn:aws:secretsmanager:us-east-1:891335278704:secret:election/ethereum/mnemonic-o3QBP6
     - Effect: Allow
@@ -90,6 +94,9 @@ functions:
 
   form-set-status:
     handler: form-set-status.setStatus
+
+  form-add-entry:
+    handler: form-submit.addEntry
 
 #    The following are a few example events you can configure
 #    NOTE: Please make sure to change your handler code to work with those events

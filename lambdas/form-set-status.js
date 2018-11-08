@@ -1,7 +1,6 @@
 'use strict';
 const iopipe = require('@iopipe/iopipe')({ token: process.env.IO_PIPE_TOKEN });
 const networks = require("./lib/eth-networks");
-const encryption = require("./lib/encryption")
 const forms = require("./lib/forms")
 
 const open = async (submissionLog, formIdHash, transactor, nonce) => {
