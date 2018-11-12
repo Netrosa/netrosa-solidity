@@ -58,7 +58,8 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
     console.log(tx);
     
     let txHash = tx.tx;    
-    await forms.setFormSuccess(company, formId, version, txHash, formIdHash);
+    let logAddress = submissionLog.address;
+    await forms.setFormSuccess(company, formId, version, txHash, formIdHash, logAddress);
 
     callback(null, {formIdHash: formIdHash, txId: txHash})
 
