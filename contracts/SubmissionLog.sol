@@ -40,7 +40,7 @@ contract SubmissionLog is Ownable {
     }
 
     modifier notDuplicateToken(bytes32 tokenId) {
-        require(!tokens[tokenId]);
+        require(!tokens[tokenId], "tokenId may only be used once");
         _;
     }
 
