@@ -6,13 +6,16 @@ const ursa = require('ursa')
 const KEY_TABLE = "formKeys"
 const ENCRYPT_KEY_ARN = "arn:aws:kms:us-east-1:891335278704:key/5880ec39-30e8-4995-b75a-e3abee2dbba0";
 
-const addKey = async (formId, keyType, key) => {
+const addKey = async (formId, keyType, key, ttl) => {
     let obj = {
         formId: formId,
         keyType: keyType,
         value: key,
         encrypted: true,
         txTimestamp: new Date().getTime()
+    }
+    if(ttl){
+        obj.ttlTimestamp = ttl;
     }
 
     let params = {
@@ -23,13 +26,16 @@ const addKey = async (formId, keyType, key) => {
     return obj.formId;
 }
 
-const addUnencryptedKey = async (formId, keyType, key) => {
+const addUnencryptedKey = async (formId, keyType, key, ttl) => {
     let obj = {
         formId: formId,
         keyType: keyType,
         value: key,
         encrypted: false,
         txTimestamp: new Date().getTime()
+    }
+    if(ttl){
+        obj.ttlTimestamp = ttl;
     }
 
     let params = {
@@ -65,12 +71,12 @@ const getKey = async (formId, keyType) => {
     return data.Item;
 }
 
-const generateKey = async (formId, keyType) => {
+const generateKey = async (formId, keyType, ttl) => {
     let key = ursa.generatePrivateKey();
     let plaintext = key.toPrivatePem('base64');
     const ctx = {"id": formId,"type": keyType}
     let encrypted = await kmsEncrypt(ctx, plaintext);
-    await addKey(formId, keyType, encrypted);
+    await addKey(formId, keyType, encrypted, ttl);
     return {
         plaintext: plaintext,
         encrypted: encrypted
@@ -88,12 +94,12 @@ const getDecryptedKey = async (formId, keyType) => {
     return await kmsDecrypt(ctx, key.value);
 }
 
-const generateKeyPair = async (formId, prefix) => {
+const generateKeyPair = async (formId, prefix, ttl) => {
     let keys = ursa.generatePrivateKey();
     let encryptedPrivatePem = await encrypt(formId, `${prefix}-private`, keys.toPrivatePem('base64'))
     let pubPem = keys.toPublicPem('base64');
-    await addKey(formId, `${prefix}-private`, encryptedPrivatePem)
-    await addUnencryptedKey(formId, `${prefix}-public`, pubPem);
+    await addKey(formId, `${prefix}-private`, encryptedPrivatePem, ttl)
+    await addUnencryptedKey(formId, `${prefix}-public`, pubPem, ttl);
 }
 
 const deleteSubmitKey = async (formId) => {
@@ -114,14 +120,14 @@ const deleteSubmitKey = async (formId) => {
     await docClient.update(params).promise();
 }
 
-const generateKeys = async (formId, authType) => {
+const generateKeys = async (formId, authType, ttl) => {
     let tasks = [
-        generateKey(formId, "anonymize"),
-        generateKeyPair(formId, "encryption"),
+        generateKey(formId, "anonymize", ttl),
+        generateKeyPair(formId, "encryption", ttl),
     ];
     // if key, then netrosa will sign using own JWT keypair
     if(authType === "key"){
-        tasks.push(generateKeyPair(formId, "jwt"))
+        tasks.push(generateKeyPair(formId, "jwt", ttl))
     }
     await Promise.all(tasks);
 }

@@ -13,6 +13,8 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
   let company = event.company;
   let formId = event.formId;
   let authType = event.authType;
+  let formType = event.formType || "netrosa";
+  let status = (formType === "netrosa") ? "ready" : "open";
 
   if(!company){
     throw new Error("company is required")
@@ -30,12 +32,12 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
   let nv = await networks.NetvoteProvider(event.network);
   let version = nv.version();
   let submissionLog = await nv.SubmissionLog(version);
-
+  let form = await forms.getForm(company, formId);
   let formIdHash = nv.sha3(event.formId);
   let continuousReveal = event.continuousReveal || false;
   let transactor = nv.gatewayAddress();
 
-  await encryption.generateKeys(formId, authType);
+  await encryption.generateKeys(formId, authType, form.ttlTimestamp);
 
   let keyHash = ""
   if(continuousReveal){
@@ -59,7 +61,7 @@ module.exports.createForm = iopipe(async (event, context, callback) => {
     
     let txHash = tx.tx;    
     let logAddress = submissionLog.address;
-    await forms.setFormSuccess(company, formId, version, txHash, formIdHash, logAddress);
+    await forms.setFormSuccess(company, formId, status, version, txHash, formIdHash, logAddress);
 
     callback(null, {formIdHash: formIdHash, txId: txHash})
 
